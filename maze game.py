@@ -1,7 +1,10 @@
 # import enum
-from flask import Flask
+from io import BytesIO
+from flask import Flask, make_response, render_template, render_template_string, send_file
 from random import randrange
-import png
+
+from PIL import Image
+from selenium import webdriver
 
 
 class Position():
@@ -81,8 +84,11 @@ def generate_move_correct_way(start: Position, end: Position, size: int, previou
     """
     possibles_next = start.possible_next(size, previous_pos=previous_pos)
     current_moves_needed = moves_needed(start, end)
-    possibles_next = list(filter(lambda n: moves_needed(
-        n, end) < current_moves_needed, possibles_next))
+    possibles_next = list(
+        filter(lambda n:
+               moves_needed(n, end) < current_moves_needed,
+               possibles_next)
+    )
     next: Position
     _random = randrange(0, len(possibles_next))
     next = possibles_next[_random]
@@ -90,24 +96,20 @@ def generate_move_correct_way(start: Position, end: Position, size: int, previou
     return next
 
 
-def generate_path(start: Position, end: Position, size: int) -> list[Position]:
+def generate_path(start: Position, end: Position, size: int, variance: int) -> list[Position]:
     """
     Return a random path containing all the position from the start to the end
     """
 
     moves = [start]
-    print(start)
     _moves_needed = moves_needed(start, end)
     for i in range(1, _moves_needed - 1):
         previous_pos = None
         if (i >= 2):
             previous_pos: Position = moves[i-2]
-        print(i-1)
         move = generate_move_correct_way(
             moves[i-1], end, size, previous_pos=previous_pos)
-        print(move)
         moves.append(move)
-    print(end)
     moves.append(end)
     return moves
 
@@ -164,10 +166,10 @@ def generate_random_paths(size: int):
     while _moves_needed < int(size) or start.x + start.y < end.x + end.y:
         end = generate_random_position(size)
         _moves_needed = moves_needed(start, end)
-    return generate_path(start, end, size)
+    return generate_path(start, end, size, size)
 
 
-class Image():
+class Icon():
     START = "https://images.template.net/102134/racing-start-flag-clipart-0osxw.jpg"
     TREASURE = "https://cdn-icons-png.flaticon.com/512/2374/2374884.png"
     END = "https://cdn-icons-png.flaticon.com/512/1986/1986876.png"
@@ -182,17 +184,42 @@ def display_image(position: Position, image: str):
 
 
 @app.route("/")
+def generate_screenshot():
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')  # Exécution sans affichage
+    browser = webdriver.Chrome(options=options)
+
+    # Accédez à la page Flask
+    browser.get("http://127.0.0.1:5000/maze")
+
+    # Prend une capture d'écran de la page
+    image = browser.get_screenshot_as_png()
+    with open("maze.png", "wb") as file:
+        file.write(image)
+
+    # Ferme le navigateur Web
+    browser.close()
+
+    # Renvoie la capture d'écran
+    return send_file("./maze.png", mimetype="image/png", as_attachment=True, download_name="maze_game.png")
+
+
+@app.route("/maze")
 def hello_world():
 
     size = 10
+    variance = size
     start_possition = generate_random_position(size)  # Position(0, 9)
     out_position = generate_random_position(size)  # Position(size-1, 0)
-    path = generate_path(start_possition, out_position, size)
+    path = generate_path(start_possition, out_position, size, variance)
     treasur_position = generate_random_position(size)
-    treasur_path = generate_path(start_possition, treasur_position, size)
-
+    treasur_path = generate_path(
+        start_possition, treasur_position, size, variance)
     random_paths = ""
-    for i in range(0, size - 1):
-        random_paths += display_path(generate_path(
-            generate_random_position(size), generate_random_position(size), size))
-    return show_maze(size) + display_path(treasur_path) + display_path(path, "grey") + random_paths + display_image(treasur_position, Image.TREASURE) + display_image(start_possition, Image.START) + display_image(out_position, Image.END)
+    # for i in range(0, size - 1):
+    # random_paths += display_path(generate_path(
+    # generate_random_position(size), generate_random_position(size), size))
+    res = show_maze(size) + display_path(treasur_path) + display_path(path, "grey") + display_image(treasur_position,
+                                                                                                    Icon.TREASURE) + display_image(start_possition, Icon.START) + display_image(out_position, Icon.END)
+
+    return res
