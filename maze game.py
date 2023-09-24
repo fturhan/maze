@@ -67,34 +67,34 @@ class Position():
 
 
 def moves_needed(from_position: Position, to_position: Position):
+    """
+    Calculate the difference between the 2 position
+    """
     x = abs(to_position.x - from_position.x)
     y = abs(to_position.y - from_position.y)
     return y + x + 1
 
 
 def generate_move_correct_way(start: Position, end: Position, size: int, previous_pos: Position = None):
+    """
+    Return the next position which is the nearest to the end 
+    """
     possibles_next = start.possible_next(size, previous_pos=previous_pos)
     current_moves_needed = moves_needed(start, end)
-    filtered_list = []
-    for move in possibles_next:
-        if moves_needed(move, end) < current_moves_needed:
-            filtered_list.append(move)
-
     possibles_next = list(filter(lambda n: moves_needed(
         n, end) < current_moves_needed, possibles_next))
     next: Position
     _random = randrange(0, len(possibles_next))
     next = possibles_next[_random]
 
-    # while next_moves_needed >= _moves_needed:
-    #     _random = randrange(0, len(possibles_next))
-    #     next = possibles_next[_random]
-    # next_moves_needed = moves_needed(next, end)
-    #
     return next
 
 
-def generate_path(start: Position, end: Position, size: int):
+def generate_path(start: Position, end: Position, size: int) -> list[Position]:
+    """
+    Return a random path containing all the position from the start to the end
+    """
+
     moves = [start]
     print(start)
     _moves_needed = moves_needed(start, end)
@@ -116,6 +116,9 @@ app = Flask(__name__)
 
 
 def show_maze(size):
+    """
+    Print the maze on a web page 
+    """
     final_maze = "<div id='maze'>"
     for x in range(0, size):
         for y in range(0, size):
@@ -182,8 +185,8 @@ def display_image(position: Position, image: str):
 def hello_world():
 
     size = 10
-    start_possition = Position(0, 0)
-    out_position = Position(size-1, size-1)
+    start_possition = generate_random_position(size)  # Position(0, 9)
+    out_position = generate_random_position(size)  # Position(size-1, 0)
     path = generate_path(start_possition, out_position, size)
     treasur_position = generate_random_position(size)
     treasur_path = generate_path(start_possition, treasur_position, size)
