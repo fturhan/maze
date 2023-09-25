@@ -12,9 +12,11 @@ The goal was to create a python program using flask that can create a maze with 
 
 Step to reproduce to set up the server:
 
-1. clone this repo
+1. clone this repo and go into it
 
-`git clone git@github.com:fturhan/maze.git`
+- `git clone git@github.com:fturhan/maze.git`
+
+- `cd maze`
 
 2. create a virtualenv
 
