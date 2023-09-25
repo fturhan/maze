@@ -1,13 +1,14 @@
-This project is a technical test.
-
-The goal was to create a python program using flask that can create a maze with the data provided by the user :
+The goal of this project was to create a python program using flask that can create a maze with the data provided by the user :
 
 - a `start` point
 - a `treasure` point
 - an `exit` point
+
+The result must check the following lines :
+
 - a path must exist from start point to treasure point
 - a path must exist from start point to exit point
-- the size of the maze is determined by the exit position (if exit(4,4) => size = 5, if exit(12,12) => size = 13)
+- the size of the maze is determined by the exit position (if exit(4,4) => size = 5, if exit(12,12) => size = 13, ...)
 - a "size number" of random path is generated to create fake ways
 
 Step to reproduce to set up the server:
